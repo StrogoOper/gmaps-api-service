@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxkbcommon0 \
     libxrandr2 \
     xdg-utils \
+    xvfb \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -40,6 +41,9 @@ RUN playwright install --with-deps chromium
 # Copy application code
 COPY . .
 
-EXPOSE 8000
+# RelaxDev expects port 8080
+EXPOSE 8080
 
-CMD uvicorn main:app --host 0.0.0.0 --port 8080
+# Use JSON CMD format (recommended by Docker) and run through xvfb-run
+# so that Chromium has a virtual display available.
+CMD ["xvfb-run", "-a", "-s", "-screen 0 1920x1080x24", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

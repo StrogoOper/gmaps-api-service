@@ -12,10 +12,11 @@ from playwright.async_api import async_playwright, Page
 from pydantic import BaseModel, Field
 
 # --- x402 Imports ---
-from x402 import x402ResourceServer, ResourceConfig
-from x402.http import HTTPFacilitatorClient
-from x402.mechanisms.evm.exact import ExactEvmServerScheme
+from x402 import x402ResourceServer
+from x402.http import FacilitatorConfig, HTTPFacilitatorClient, PaymentOption
 from x402.http.middleware.fastapi import PaymentMiddlewareASGI
+from x402.http.types import RouteConfig
+from x402.mechanisms.evm.exact import ExactEvmServerScheme
 # --------------------
 
 logging.basicConfig(level=logging.INFO)
@@ -280,23 +281,29 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# --- x402 Middleware Setup ---
-facilitator = HTTPFacilitatorClient(url=FACILITATOR_URL)
+# --- x402 Middleware Setup (Corrected for x402 2.x) ---
+facilitator = HTTPFacilitatorClient(FacilitatorConfig(url=FACILITATOR_URL))
 server = x402ResourceServer(facilitator)
 server.register("eip155:*", ExactEvmServerScheme())
 server.initialize()
 
 payment_config = {
-    "/scrape": ResourceConfig(
-        scheme="exact",
-        network="eip155:8453",  # Base Mainnet
-        pay_to=PAY_TO_ADDRESS,
-        price=PRICE_PER_CALL,
+    "/scrape": RouteConfig(
+        accepts=[
+            PaymentOption(
+                scheme="exact",
+                pay_to=PAY_TO_ADDRESS,
+                price=PRICE_PER_CALL,
+                network="eip155:8453",
+            ),
+        ],
+        mime_type="application/json",
+        description="Scrape Google Maps reviews",
     ),
 }
 
 app.add_middleware(PaymentMiddlewareASGI, server=server, routes=payment_config)
-# ---------------------------
+# ---------------------------------------------------------
 
 
 @app.get("/health")

@@ -1,7 +1,7 @@
 # Lightweight Python image (fast to pull)
 FROM python:3.12-slim
 
-# Install system dependencies required by Playwright
+# Install system dependencies required by Playwright and xvfb
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrandr2 \
     xdg-utils \
     xvfb \
+    xauth \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -44,6 +45,5 @@ COPY . .
 # RelaxDev expects port 8080
 EXPOSE 8080
 
-# Use JSON CMD format (recommended by Docker) and run through xvfb-run
-# so that Chromium has a virtual display available.
+# Run uvicorn through xvfb-run so Chromium has a virtual display
 CMD ["xvfb-run", "-a", "-s", "-screen 0 1920x1080x24", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

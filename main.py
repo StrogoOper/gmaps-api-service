@@ -1,4 +1,4 @@
-"""FastAPI service for Google Maps reviews scraping with x402 payments + MCP wrapper."""
+"""FastAPI service for Google Maps reviews scraping with x402 payments."""
 
 from __future__ import annotations
 
@@ -19,10 +19,6 @@ from x402.http.types import RouteConfig
 from x402.mechanisms.evm.exact import ExactEvmServerScheme
 # --------------------
 
-# --- MCP Wrapper ---
-from fastapi_mcp import FastApiMCP
-# -------------------
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -31,13 +27,8 @@ SCROLL_PAUSE_SECONDS = 1.5
 PAGE_LOAD_TIMEOUT_MS = 60_000
 
 # --- x402 Configuration ---
-# Твой кошелек Bybit в сети Base
 PAY_TO_ADDRESS = "0xf53647975b34f622cf838e2a2243090e8369e7c2"
-
-# Бесплатный фасилитатор от xpay.sh
 FACILITATOR_URL = "https://facilitator.xpay.sh"
-
-# Стоимость одного вызова API
 PRICE_PER_CALL = "$0.10"
 # ---------------------------
 
@@ -308,15 +299,6 @@ payment_config = {
 
 app.add_middleware(PaymentMiddlewareASGI, server=server, routes=payment_config)
 # ---------------------------
-
-# --- MCP Wrapper Setup ---
-mcp = FastApiMCP(
-    app,
-    name="Google Maps Reviews Scraper",
-    description="Extract reviews from any Google Maps place",
-)
-mcp.mount()
-# -------------------------
 
 
 @app.get("/health")

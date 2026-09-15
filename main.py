@@ -1,4 +1,4 @@
-"""FastAPI service for Google Maps reviews scraping with x402 payments."""
+"""FastAPI service for Google Maps reviews scraping with x402 payments + MCP wrapper."""
 
 from __future__ import annotations
 
@@ -18,6 +18,10 @@ from x402.http.middleware.fastapi import PaymentMiddlewareASGI
 from x402.http.types import RouteConfig
 from x402.mechanisms.evm.exact import ExactEvmServerScheme
 # --------------------
+
+# --- MCP Wrapper ---
+from fastapi_mcp import FastApiMCP
+# -------------------
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -281,7 +285,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# --- x402 Middleware Setup (Corrected for x402 2.x) ---
+# --- x402 Middleware Setup ---
 facilitator = HTTPFacilitatorClient(FacilitatorConfig(url=FACILITATOR_URL))
 server = x402ResourceServer(facilitator)
 server.register("eip155:*", ExactEvmServerScheme())
@@ -303,7 +307,16 @@ payment_config = {
 }
 
 app.add_middleware(PaymentMiddlewareASGI, server=server, routes=payment_config)
-# ---------------------------------------------------------
+# ---------------------------
+
+# --- MCP Wrapper Setup ---
+mcp = FastApiMCP(
+    app,
+    name="Google Maps Reviews Scraper",
+    description="Extract reviews from any Google Maps place",
+)
+mcp.mount()
+# -------------------------
 
 
 @app.get("/health")

@@ -1,5 +1,5 @@
 # Playwright Python image with Chromium pre-installed
-FROM mcr.microsoft.com/playwright/python:v1.58.0-noble
+FROM mcr.1ms.run/playwright/python:v1.58.0-noble
 
 WORKDIR /app
 
